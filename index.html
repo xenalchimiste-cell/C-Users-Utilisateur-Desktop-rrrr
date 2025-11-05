@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Dictionnaire Informatique</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-book"></i> Mon Dictionnaire Informatique</h1>
+
+    <div class="main-layout">
+      <!-- Colonne de gauche -->
+      <div class="left-column">
+        <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="🔍 Rechercher un terme..." 
+                 oninput="showSuggestions()" 
+                 onfocus="showSuggestions()"
+                 onkeydown="if(event.key === 'Enter') searchTerm()">
+          <button onclick="searchTerm()">Chercher</button>
+        </div>
+
+        <div class="controls-group">
+          <div class="stats">
+            <span id="resultCount">0 définitions trouvées</span>
+            <button id="toggleTheme" onclick="toggleTheme()">🌙 Mode sombre</button>
+            <button id="startQuiz" onclick="startQuiz()">🎯 Mode Quiz</button>
+            <button id="showProgress" onclick="toggleProgressView()">📊 Progression</button>
+            <button id="showFavorites" onclick="toggleFavorites()">⭐ Favoris</button>
+            <button id="startFlashCards" onclick="startFlashCards()">🎴 Cartes Flash</button>
+            <button id="dailyChallenge" onclick="startDailyChallenge()">🎯 Défi du jour</button>
+            <button id="compareTerms" onclick="startCompareMode()">🔄 Comparer</button>
+            <button id="showNotes" onclick="toggleNotes()">📝 Notes</button>
+            <button id="startExercises" onclick="startExercises()">💻 Exercices</button>
+          </div>
+
+          <div class="category-filter">
+            <h3>Filtrer par catégorie</h3>
+            <div id="categories" class="categories">
+              <!-- Les catégories seront ajoutées dynamiquement -->
+            </div>
+          </div>
+
+          <div class="alphabet-filter">
+            <div class="letters">
+              <span class="letter" onclick="filterByLetter('A')">A</span>
+              <span class="letter" onclick="filterByLetter('B')">B</span>
+              <span class="letter" onclick="filterByLetter('C')">C</span>
+              <span class="letter" onclick="filterByLetter('D')">D</span>
+              <span class="letter" onclick="filterByLetter('E')">E</span>
+              <span class="letter" onclick="filterByLetter('F')">F</span>
+              <span class="letter" onclick="filterByLetter('G')">G</span>
+              <span class="letter" onclick="filterByLetter('H')">H</span>
+              <span class="letter" onclick="filterByLetter('I')">I</span>
+              <span class="letter" onclick="filterByLetter('J')">J</span>
+              <span class="letter" onclick="filterByLetter('K')">K</span>
+              <span class="letter" onclick="filterByLetter('L')">L</span>
+              <span class="letter" onclick="filterByLetter('M')">M</span>
+              <span class="letter" onclick="filterByLetter('N')">N</span>
+              <span class="letter" onclick="filterByLetter('O')">O</span>
+              <span class="letter" onclick="filterByLetter('P')">P</span>
+              <span class="letter" onclick="filterByLetter('Q')">Q</span>
+              <span class="letter" onclick="filterByLetter('R')">R</span>
+              <span class="letter" onclick="filterByLetter('S')">S</span>
+              <span class="letter" onclick="filterByLetter('T')">T</span>
+              <span class="letter" onclick="filterByLetter('U')">U</span>
+              <span class="letter" onclick="filterByLetter('V')">V</span>
+              <span class="letter" onclick="filterByLetter('W')">W</span>
+              <span class="letter" onclick="filterByLetter('X')">X</span>
+              <span class="letter" onclick="filterByLetter('Y')">Y</span>
+              <span class="letter" onclick="filterByLetter('Z')">Z</span>
+            </div>
+          </div>
+
+          <div class="search-history" id="search-history">
+            <h3>Historique des recherches</h3>
+            <button onclick="clearSearchHistory()" class="clear-history">🗑️ Effacer l'historique</button>
+            <ul id="history-list"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonne de droite -->
+      <div class="right-column">
+        <div id="results" class="fade-in"></div>
+        
+        <div id="progressContainer" class="progress-container" style="display: none;">
+          <div class="progress-header">
+            <h3>Suivi de Progression</h3>
+            <div class="progress-stats">
+              <div class="progress-stat">
+                <span>Termes consultés</span>
+                <span id="viewedTerms">0/0</span>
+              </div>
+              <div class="progress-stat">
+                <span>Progression globale</span>
+                <span id="globalProgress">0%</span>
+              </div>
+              <div class="progress-stat">
+                <span>Score moyen aux quiz</span>
+                <span id="averageQuizScore">0%</span>
+              </div>
+            </div>
+            <div class="progress-bar">
+              <div id="progressBar" class="progress-fill"></div>
+            </div>
+          </div>
+          <div class="progress-details">
+            <h4>Détails par catégorie</h4>
+            <div id="categoryProgress" class="category-progress">
+              <!-- Les statistiques par catégorie seront ajoutées ici -->
+            </div>
+          </div>
+        </div>
+
+        <div id="quizContainer" class="quiz-container" style="display: none;">
+          <div class="quiz-header">
+            <h3>Mode Quiz</h3>
+            <div class="quiz-score">Score: <span id="score">0</span>/<span id="totalQuestions">0</span></div>
+          </div>
+          <div id="quizContent" class="quiz-content">
+            <!-- Le contenu du quiz sera injecté ici -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const data = {
+      "python": {
+        title: "PYTHON",
+        description: "Langage de programmation polyvalent, utilisé pour le web, la data science, l'IA, etc.",
+        example: 'print("Hello World!")',
+        image: "https://www.python.org/static/community_logos/python-logo.png",
+        category: "Langage de programmation"
+      },
+      "html": {
+        title: "HTML",
+        description: "Langage de balisage standard pour créer la structure des pages web.",
+        example: "&lt;h1&gt;Titre&lt;/h1&gt;",
+        image: "https://upload.wikimedia.org/wikipedia/commons/6/61/HTML5_logo_and_wordmark.svg",
+        category: "Web"
+      },
+      "css": {
+        title: "CSS",
+        description: "Feuilles de style utilisées pour personnaliser l'apparence des pages web.",
+        example: "body { background-color: lightblue; }",
+        image: "https://upload.wikimedia.org/wikipedia/commons/d/d5/CSS3_logo_and_wordmark.svg",
+        category: "Web"
+      },
+      "javascript": {
+        title: "JAVASCRIPT",
+        description: "Langage de script pour rendre les pages web interactives.",
+        example: "alert('Hello World!');",
+        image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/JavaScript-logo.png",
+        category: "Langage de programmation"
+      },
+      "api": {
+        title: "API",
+        description: "Interface permettant à différentes applications de communiquer entre elles.",
+        example: "fetch('https://api.example.com/data')",
+        image: "https://cdn-icons-png.flaticon.com/512/103/103090.png",
+        category: "Web / Communication"
+      },
+      "git": {
+        title: "GIT",
+        description: "Système de gestion de version utilisé pour suivre les modifications de code.",
+        example: "git commit -m 'Initial commit'",
+        image: "https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png",
+        category: "Outils de développement"
+      },
+      "algorithme": {
+        title: "ALGORITHME",
+        description: "Suite d'instructions ordonnées permettant de résoudre un problème ou d'effectuer un traitement.",
+        example: "Si condition Alors action1 Sinon action2 FinSi",
+        image: "https://cdn-icons-png.flaticon.com/512/1968/1968641.png",
+        category: "Concepts de programmation"
+      },
+      "backend": {
+        title: "BACKEND",
+        description: "Partie d'une application qui gère le traitement des données et la logique côté serveur.",
+        example: "app.get('/api/users', (req, res) => { ... })",
+        image: "https://cdn-icons-png.flaticon.com/512/5738/5738077.png",
+        category: "Architecture"
+      },
+      "frontend": {
+        title: "FRONTEND",
+        description: "Partie visible d'une application avec laquelle l'utilisateur interagit directement.",
+        example: "const button = document.querySelector('#submit');",
+        image: "https://cdn-icons-png.flaticon.com/512/1085/1085802.png",
+        category: "Architecture"
+      },
+      "react": {
+        title: "REACT",
+        description: "Bibliothèque JavaScript pour construire des interfaces utilisateur interactives.",
+        example: "function App() { return <div>Hello React!</div>; }",
+        image: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
+        category: "Framework"
+      },
+      "sql": {
+        title: "SQL",
+        description: "Langage de requête structurée pour gérer et interroger des bases de données relationnelles.",
+        example: "SELECT * FROM users WHERE age > 18;",
+        image: "https://cdn-icons-png.flaticon.com/512/4492/4492311.png",
+        category: "Base de données"
+      },
+      "linux": {
+        title: "LINUX",
+        description: "Système d'exploitation open source basé sur Unix, très utilisé pour les serveurs.",
+        example: "ls -la /home/user",
+        image: "https://cdn-icons-png.flaticon.com/512/226/226772.png",
+        category: "Système d'exploitation"
+      },
+      "docker": {
+        title: "DOCKER",
+        description: "Plateforme de conteneurisation permettant d'empaqueter une application avec ses dépendances.",
+        example: "docker run -d nginx",
+        image: "https://www.docker.com/sites/default/files/d8/2019-07/vertical-logo-monochromatic.png",
+        category: "DevOps"
+      },
+      "nodejs": {
+        title: "NODE.JS",
+        description: "Environnement d'exécution JavaScript côté serveur basé sur le moteur V8 de Chrome.",
+        example: "const http = require('http');",
+        image: "https://nodejs.org/static/images/logo.svg",
+        category: "Environnement d'exécution"
+      },
+      "mvc": {
+        title: "MVC",
+        description: "Pattern d'architecture séparant une application en Modèle (données), Vue (interface) et Contrôleur (logique).",
+        example: "class UserController { ... }",
+        image: "https://cdn-icons-png.flaticon.com/512/1451/1451303.png",
+        category: "Architecture"
+      },
+      "openweathermap": {
+        title: "OPENWEATHER API",
+        description: "API gratuite fournissant des données météorologiques en temps réel et des prévisions pour n'importe quelle ville.",
+        example: "fetch('https://api.openweathermap.org/data/2.5/weather?q=Paris')",
+        image: "https://openweathermap.org/themes/openweathermap/assets/vendor/owm/img/icons/logo_60x60.png",
+        category: "API Gratuite"
+      },
+      "jsonplaceholder": {
+        title: "JSON PLACEHOLDER",
+        description: "API REST fake pour le prototypage et les tests, offrant des données factices pour les posts, commentaires, utilisateurs, etc.",
+        example: "fetch('https://jsonplaceholder.typicode.com/posts')",
+        image: "https://jsonplaceholder.typicode.com/favicon.ico",
+        category: "API Gratuite"
+      },
+      "randomuser": {
+        title: "RANDOM USER",
+        description: "API générant des données utilisateur aléatoires, incluant noms, emails, photos et autres informations personnelles fictives.",
+        example: "fetch('https://randomuser.me/api/')",
+        image: "https://randomuser.me/favicon.ico",
+        category: "API Gratuite"
+      },
+      "newsapi": {
+        title: "NEWS API",
+        description: "API d'actualités donnant accès aux gros titres et articles de nombreuses sources d'information dans le monde.",
+        example: "fetch('https://newsapi.org/v2/top-headlines?country=fr')",
+        image: "https://newsapi.org/favicon-32x32.png",
+        category: "API Gratuite"
+      },
+      "giphy": {
+        title: "GIPHY API",
+        description: "API permettant d'accéder à la plus grande bibliothèque de GIFs et de stickers animés au monde.",
+        example: "fetch('https://api.giphy.com/v1/gifs/trending')",
+        image: "https://giphy.com/static/img/favicon.png",
+        category: "API Gratuite"
+      },
+      "googlebooks": {
+        title: "GOOGLE BOOKS API",
+        description: "API donnant accès à la vaste bibliothèque de livres de Google, incluant métadonnées et aperçus.",
+        example: "fetch('https://www.googleapis.com/books/v1/volumes?q=javascript')",
+        image: "https://books.google.com/favicon.ico",
+        category: "API Gratuite"
+      },
+      "themoviedb": {
+        title: "TMDB API",
+        description: "API de The Movie Database offrant des informations sur les films, séries TV, acteurs et critiques.",
+        example: "fetch('https://api.themoviedb.org/3/movie/popular')",
+        image: "https://www.themoviedb.org/assets/2/favicon-32x32-543a21832c8931d3494a68881f6afcafc58e96c5d324345377f3197a37b367b5.png",
+        category: "API Gratuite"
+      },
+      "openstreetmap": {
+        title: "OPENSTREETMAP API",
+        description: "API de cartographie open source permettant d'accéder à des données géographiques mondiales.",
+        example: "fetch('https://nominatim.openstreetmap.org/search?q=Paris&format=json')",
+        image: "https://www.openstreetmap.org/assets/favicon-16x16-b5e844d451d174d196e24f1878c92d0a8f7c4d506b7967a48b0c34d8c3ff1f51.png",
+        category: "API Gratuite"
+      },
+      "currencyapi": {
+        title: "EXCHANGE RATES API",
+        description: "API fournissant des taux de change en temps réel pour plus de 170 devises mondiales.",
+        example: "fetch('https://api.exchangerate-api.com/v4/latest/EUR')",
+        image: "https://www.exchangerate-api.com/img/favicon.png",
+        category: "API Gratuite"
+      },
+      "pentest": {
+        title: "PENETRATION TESTING",
+        description: "Test d'intrusion éthique visant à identifier les vulnérabilités de sécurité d'un système pour le renforcer.",
+        example: "nmap -sV -p 80,443 target.com",
+        image: "https://cdn-icons-png.flaticon.com/512/2092/2092663.png",
+        category: "Cybersécurité"
+      },
+      "vulnerabilite": {
+        title: "VULNERABILITY",
+        description: "Point faible dans un système qui peut être exploité pour compromettre sa sécurité.",
+        example: "CVE-2023-1234: Buffer overflow in login module",
+        image: "https://cdn-icons-png.flaticon.com/512/2910/2910910.png",
+        category: "Cybersécurité"
+      },
+      "firewall": {
+        title: "FIREWALL",
+        description: "Système de sécurité qui contrôle et filtre le trafic réseau entrant et sortant selon des règles prédéfinies.",
+        example: "iptables -A INPUT -p tcp --dport 80 -j ACCEPT",
+        image: "https://cdn-icons-png.flaticon.com/512/1720/1720444.png",
+        category: "Cybersécurité"
+      },
+      "chiffrement": {
+        title: "ENCRYPTION",
+        description: "Processus de transformation des données en code secret pour protéger leur confidentialité.",
+        example: "openssl enc -aes-256-cbc -salt -in file.txt -out file.enc",
+        image: "https://cdn-icons-png.flaticon.com/512/6695/6695153.png",
+        category: "Cybersécurité"
+      },
+      "authentification": {
+        title: "AUTHENTICATION",
+        description: "Processus de vérification de l'identité d'un utilisateur ou d'un système.",
+        example: "const bcrypt = require('bcrypt');\nconst hash = await bcrypt.hash(password, 10);",
+        image: "https://cdn-icons-png.flaticon.com/512/2758/2758790.png",
+        category: "Cybersécurité"
+      },
+      "audit": {
+        title: "SECURITY AUDIT",
+        description: "Examen systématique des systèmes et processus pour identifier les risques de sécurité.",
+        example: "nessus -T html -o rapport.html target.com",
+        image: "https://cdn-icons-png.flaticon.com/512/5263/5263818.png",
+        category: "Cybersécurité"
+      },
+      "malware": {
+        title: "MALWARE",
+        description: "Logiciel malveillant conçu pour endommager ou compromettre un système informatique.",
+        example: "ClamAV scan -r /home/user",
+        image: "https://cdn-icons-png.flaticon.com/512/2068/2068598.png",
+        category: "Cybersécurité"
+      },
+      "social": {
+        title: "SOCIAL ENGINEERING",
+        description: "Manipulation psychologique visant à obtenir des informations confidentielles de manière frauduleuse.",
+        example: "Formation des employés à la détection des tentatives de phishing",
+        image: "https://cdn-icons-png.flaticon.com/512/3629/3629607.png",
+        category: "Cybersécurité"
+      },
+      "backup": {
+        title: "BACKUP",
+        description: "Copie de sécurité des données importantes pour prévenir leur perte en cas d'incident.",
+        example: "rsync -av /source/ /backup/",
+        image: "https://cdn-icons-png.flaticon.com/512/2885/2885535.png",
+        category: "Cybersécurité"
+      },
+      "ddos": {
+        title: "DDOS",
+        description: "Attaque par déni de service distribué qui vise à rendre un service indisponible en le submergeant de requêtes.",
+        example: "hping3 -S --flood -V -p 80 target.com",
+        image: "https://cdn-icons-png.flaticon.com/512/1067/1067562.png",
+        category: "Cybersécurité"
+      },
+      "xss": {
+        title: "XSS",
+        description: "Cross-Site Scripting, une vulnérabilité permettant l'injection de code malveillant dans une page web.",
+        example: "&lt;script&gt;alert('XSS')&lt;/script&gt;",
+        image: "https://cdn-icons-png.flaticon.com/512/2010/2010990.png",
+        category: "Cybersécurité"
+      },
+      "sqlinjection": {
+        title: "SQL INJECTION",
+        description: "Technique d'exploitation visant à injecter du code SQL malveillant dans une requête pour manipuler la base de données.",
+        example: "' OR '1'='1",
+        image: "https://cdn-icons-png.flaticon.com/512/1822/1822899.png",
+        category: "Cybersécurité"
+      },
+      "rat": {
+        title: "RAT",
+        description: "Remote Access Trojan, logiciel malveillant permettant de prendre le contrôle à distance d'un système infecté.",
+        example: "netcat -lvp 4444",
+        image: "https://cdn-icons-png.flaticon.com/512/2535/2535557.png",
+        category: "Cybersécurité"
+      },
+      "keylogger": {
+        title: "KEYLOGGER",
+        description: "Programme qui enregistre les frappes au clavier pour capturer des informations sensibles comme les mots de passe.",
+        example: "pynput.keyboard.Listener(on_press=on_press)",
+        image: "https://cdn-icons-png.flaticon.com/512/1997/1997938.png",
+        category: "Cybersécurité"
+      },
+      "mitm": {
+        title: "MITM",
+        description: "Man In The Middle, attaque où l'attaquant s'intercale entre deux parties pour intercepter leurs communications.",
+        example: "arpspoof -i eth0 -t target gateway",
+        image: "https://cdn-icons-png.flaticon.com/512/2092/2092663.png",
+        category: "Cybersécurité"
+      },
+      "rootkit": {
+        title: "ROOTKIT",
+        description: "Ensemble d'outils permettant de maintenir un accès privilégié à un système tout en dissimulant sa présence.",
+        example: "chkrootkit /path/to/check",
+        image: "https://cdn-icons-png.flaticon.com/512/2716/2716012.png",
+        category: "Cybersécurité"
+      },
+      "zeroday": {
+        title: "ZERO DAY",
+        description: "Vulnérabilité inconnue du public et de l'éditeur, permettant des attaques avant qu'un correctif ne soit disponible.",
+        example: "CVE-XXXX-XXXXX (Non attribué)",
+        image: "https://cdn-icons-png.flaticon.com/512/2818/2818233.png",
+        category: "Cybersécurité"
+      },
+      "reverseengineering": {
+        title: "REVERSE ENGINEERING",
+        description: "Analyse d'un logiciel pour comprendre son fonctionnement interne et identifier des vulnérabilités.",
+        example: "objdump -d binary | grep main",
+        image: "https://cdn-icons-png.flaticon.com/512/1935/1935839.png",
+        category: "Cybersécurité"
+      }
+    };
+
+    // Ajout des données d'exercices après l'objet data
+    const exercisesData = {
+      "Débutant": {
+        exercises: [
+          {
+            title: "Addition simple",
+            description: "Créez une fonction qui additionne deux nombres.",
+            language: "JavaScript",
+            difficulty: "Débutant",
+            template: "function addNumbers(a, b) {\n  // Écrivez votre code ici\n  // La fonction doit retourner la somme de a et b\n}",
+            solution: "function addNumbers(a, b) {\n  return a + b;\n}",
+            testCases: [
+              { input: "2, 3", expected: 5 },
+              { input: "0, 5", expected: 5 },
+              { input: "-1, 1", expected: 0 }
+            ]
+          },
+          {
+            title: "Dire Bonjour",
+            description: "Créez une fonction qui retourne 'Bonjour' suivi du nom fourni.",
+            language: "JavaScript",
+            difficulty: "Débutant",
+            template: "function sayHello(name) {\n  // Écrivez votre code ici\n  // La fonction doit retourner 'Bonjour' suivi du nom\n}",
+            solution: "function sayHello(name) {\n  return 'Bonjour ' + name;\n}",
+            testCases: [
+              { input: "'Alice'", expected: "Bonjour Alice" },
+              { input: "'Bob'", expected: "Bonjour Bob" }
+            ]
+          },
+          {
+            title: "Pair ou Impair",
+            description: "Créez une fonction qui retourne 'pair' si le nombre est pair, 'impair' sinon.",
+            language: "JavaScript",
+            difficulty: "Débutant",
+            template: "function evenOrOdd(number) {\n  // Écrivez votre code ici\n  // Utilisez % 2 pour tester si un nombre est pair\n}",
+            solution: "function evenOrOdd(number) {\n  return number % 2 === 0 ? 'pair' : 'impair';\n}",
+            testCases: [
+              { input: "2", expected: "pair" },
+              { input: "3", expected: "impair" },
+              { input: "0", expected: "pair" }
+            ]
+          }
+        ]
+      },
+      "Intermédiaire": {
+        exercises: [
+          {
+            title: "Compter les voyelles",
+            description: "Créez une fonction qui compte le nombre de voyelles dans une chaîne.",
+            language: "JavaScript",
+            difficulty: "Intermédiaire",
+            template: "function countVowels(str) {\n  // Écrivez votre code ici\n  // Les voyelles sont : a, e, i, o, u\n}",
+            solution: "function countVowels(str) {\n  return str.toLowerCase().split('').filter(char => 'aeiou'.includes(char)).length;\n}",
+            testCases: [
+              { input: "'hello'", expected: 2 },
+              { input: "'bonjour'", expected: 3 }
+            ]
+          }
+        ]
+      }
+    };
+
+    const searchInput = document.getElementById("searchInput");
+    const suggestionsList = document.getElementById("suggestions");
+    const resultBox = document.getElementById("results");
+
+    // Ajout des variables globales
+    let currentTheme = 'light';
+    let selectedCategory = '';
+
+    // Ajout des variables pour le quiz
+    let currentQuiz = null;
+    let score = 0;
+    let currentQuestionIndex = 0;
+    let questions = [];
+
+    // Variables pour le suivi de progression
+    let userProgress = {
+      viewedTerms: new Set(),
+      quizScores: [],
+      lastViewed: {},
+      categoryProgress: {}
+    };
+
+    // Ajout des variables pour les nouvelles fonctionnalités
+    let favorites = new Set(JSON.parse(localStorage.getItem('favorites') || '[]'));
+    let isFlashCardMode = false;
+    let currentFlashCard = 0;
+
+    // Ajout des variables pour les nouvelles fonctionnalités
+    let userNotes = JSON.parse(localStorage.getItem('userNotes') || '{}');
+    let isCompareMode = false;
+    let selectedForComparison = [];
+    let lastDailyChallenge = localStorage.getItem('lastDailyChallenge');
+    let dailyChallengeCompleted = JSON.parse(localStorage.getItem('dailyChallengeCompleted') || '[]');
+
+    // Ajout des variables pour la progression des exercices
+    let exerciseProgress = JSON.parse(localStorage.getItem('exerciseProgress')) || {
+      completedExercises: {},
+      unlockedExercises: {}
+    };
+
+    // Initialisation des exercices débloqués
+    Object.keys(exercisesData).forEach(category => {
+      if (!exerciseProgress.unlockedExercises[category]) {
+        exerciseProgress.unlockedExercises[category] = [0]; // Premier exercice débloqué par défaut
+      }
+      if (!exerciseProgress.completedExercises[category]) {
+        exerciseProgress.completedExercises[category] = [];
+      }
+    });
+
+    // Charger l'historique au démarrage
+    window.onload = function() {
+      loadSearchHistory();
+      initializeCategories();
+      loadProgress();
+      filterByCategory(''); // Afficher tous les termes au démarrage
+    }
+
+    // Fonction pour charger l'historique
+    function loadSearchHistory() {
+      const searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+      const historyList = document.getElementById('history-list');
+      historyList.innerHTML = '';
+      
+      if (searchHistory.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.textContent = 'Aucune recherche récente';
+        emptyMessage.style.textAlign = 'center';
+        emptyMessage.style.color = '#888';
+        emptyMessage.style.fontStyle = 'italic';
+        historyList.appendChild(emptyMessage);
+        return;
+      }
+
+      searchHistory.forEach(term => {
+        const li = document.createElement('li');
+        li.textContent = term;
+        li.onclick = () => {
+          searchInput.value = term;
+          searchTerm();
+        };
+        historyList.appendChild(li);
+      });
+    }
+
+    // Fonction pour charger la progression
+    function loadProgress() {
+      const savedProgress = localStorage.getItem('userProgress');
+      if (savedProgress) {
+        const parsed = JSON.parse(savedProgress);
+        userProgress = {
+          ...parsed,
+          viewedTerms: new Set(parsed.viewedTerms)
+        };
+      }
+      updateProgressDisplay();
+    }
+
+    // Fonction pour sauvegarder la progression
+    function saveProgress() {
+      const toSave = {
+        ...userProgress,
+        viewedTerms: Array.from(userProgress.viewedTerms)
+      };
+      localStorage.setItem('userProgress', JSON.stringify(toSave));
+      updateProgressDisplay();
+    }
+
+    // Fonction pour mettre à jour l'affichage de la progression
+    function updateProgressDisplay() {
+      const totalTerms = Object.keys(data).length;
+      const viewedCount = userProgress.viewedTerms.size;
+      const progressPercentage = Math.round((viewedCount / totalTerms) * 100);
+      
+      document.getElementById('viewedTerms').textContent = `${viewedCount}/${totalTerms}`;
+      document.getElementById('globalProgress').textContent = `${progressPercentage}%`;
+      document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+      
+      // Calculer le score moyen aux quiz
+      const averageScore = userProgress.quizScores.length > 0
+        ? Math.round(userProgress.quizScores.reduce((a, b) => a + b, 0) / userProgress.quizScores.length)
+        : 0;
+      document.getElementById('averageQuizScore').textContent = `${averageScore}%`;
+      
+      // Mettre à jour les statistiques par catégorie
+      updateCategoryProgress();
+    }
+
+    // Fonction pour mettre à jour les statistiques par catégorie
+    function updateCategoryProgress() {
+      const categories = getUniqueCategories();
+      const categoryProgressHTML = categories.map(category => {
+        const termsInCategory = Object.entries(data).filter(([_, value]) => value.category === category);
+        const viewedInCategory = termsInCategory.filter(([key]) => userProgress.viewedTerms.has(key));
+        const percentage = Math.round((viewedInCategory.length / termsInCategory.length) * 100);
+        
+        const categoryStatDiv = document.createElement('div');
+        categoryStatDiv.className = 'category-stat';
+        
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'category-stat-header';
+        headerDiv.innerHTML = `<span>${category}</span><span>${viewedInCategory.length}/${termsInCategory.length} (${percentage}%)</span>`;
+        
+        const barDiv = document.createElement('div');
+        barDiv.className = 'category-stat-bar';
+        
+        const fillDiv = document.createElement('div');
+        fillDiv.className = 'category-stat-fill';
+        fillDiv.style.width = percentage + '%';
+        
+        barDiv.appendChild(fillDiv);
+        categoryStatDiv.appendChild(headerDiv);
+        categoryStatDiv.appendChild(barDiv);
+        
+        return categoryStatDiv.outerHTML;
+      }).join('');
+      
+      document.getElementById('categoryProgress').innerHTML = categoryProgressHTML;
+    }
+
+    // Fonction pour basculer l'affichage de la progression
+    function toggleProgressView() {
+      const progressContainer = document.getElementById('progressContainer');
+      const quizContainer = document.getElementById('quizContainer');
+      const resultsDiv = document.getElementById('results');
+      
+      if (progressContainer.style.display === 'none') {
+        progressContainer.style.display = 'block';
+        quizContainer.style.display = 'none';
+        resultsDiv.style.display = 'none';
+        document.getElementById('showProgress').textContent = '🔍 Retour';
+      } else {
+        progressContainer.style.display = 'none';
+        resultsDiv.style.display = 'block';
+        document.getElementById('showProgress').textContent = '📊 Progression';
+      }
+    }
+
+    // Fonction pour basculer le thème
+    function toggleTheme() {
+      const body = document.body;
+      const themeButton = document.getElementById('toggleTheme');
+      
+      if (currentTheme === 'light') {
+        body.classList.add('dark-theme');
+        currentTheme = 'dark';
+        themeButton.innerHTML = '☀️ Mode clair';
+      } else {
+        body.classList.remove('dark-theme');
+        currentTheme = 'light';
+        themeButton.innerHTML = '🌙 Mode sombre';
+      }
+    }
+
+    // Fonction pour obtenir toutes les catégories uniques
+    function getUniqueCategories() {
+      const categories = new Set();
+      Object.values(data).forEach(item => {
+        categories.add(item.category);
+      });
+      return Array.from(categories).sort();
+    }
+
+    // Fonction pour initialiser les catégories
+    function initializeCategories() {
+      const categoriesContainer = document.getElementById('categories');
+      const categories = getUniqueCategories();
+      
+      const allCategoryTag = document.createElement('span');
+      allCategoryTag.className = 'category-tag active';
+      allCategoryTag.onclick = () => filterByCategory('');
+      allCategoryTag.textContent = 'Tous';
+      
+      categoriesContainer.appendChild(allCategoryTag);
+      
+      categories.forEach(category => {
+        const categoryTag = document.createElement('span');
+        categoryTag.className = 'category-tag';
+        categoryTag.onclick = () => filterByCategory(category);
+        categoryTag.textContent = category;
+        categoriesContainer.appendChild(categoryTag);
+      });
+    }
+
+    // Fonction pour filtrer par catégorie
+    function filterByCategory(category) {
+      selectedCategory = category;
+      const categoryTags = document.querySelectorAll('.category-tag');
+      categoryTags.forEach(tag => {
+        tag.classList.remove('active');
+        if (tag.textContent === (category || 'Tous')) {
+          tag.classList.add('active');
+        }
+      });
+
+      const matches = Object.entries(data).filter(([key, value]) => 
+        !category || value.category === category
+      );
+
+      updateResults(matches);
+    }
+
+    // Fonction pour filtrer par lettre
+    function filterByLetter(letter) {
+      // Si on clique sur la lettre déjà active, on désactive le filtre
+      const activeLetterElement = document.querySelector('.letter.active');
+      if (activeLetterElement && activeLetterElement.textContent === letter) {
+        activeLetterElement.classList.remove('active');
+        updateResults(Object.entries(data));
+        return;
+      }
+
+      const matches = Object.entries(data).filter(([key, value]) => 
+        value.title.charAt(0).toUpperCase() === letter.toUpperCase()
+      );
+
+      // Mettre à jour l'interface visuelle des lettres
+      document.querySelectorAll('.letter').forEach(el => {
+        if (el.textContent === letter) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      // Mettre à jour le compteur de résultats avec animation
+      const resultCount = document.getElementById('resultCount');
+      resultCount.style.animation = 'none';
+      resultCount.offsetHeight; // Forcer le reflow
+      resultCount.style.animation = 'fadeInOut 0.5s ease';
+      resultCount.textContent = `${matches.length} définition${matches.length > 1 ? 's' : ''} pour la lettre "${letter}"`;
+
+      // Filtrer en tenant compte de la catégorie sélectionnée
+      const filteredMatches = selectedCategory ? 
+        matches.filter(([_, value]) => value.category === selectedCategory) : 
+        matches;
+
+      updateResults(filteredMatches);
+    }
+
+    // Fonction pour initialiser les lettres disponibles
+    function initializeLetters() {
+      // Obtenir toutes les premières lettres des définitions
+      const availableLetters = new Set(
+        Object.values(data).map(entry => entry.title.charAt(0).toUpperCase())
+      );
+
+      // Mettre à jour le style des lettres
+      document.querySelectorAll('.letter').forEach(el => {
+        const letter = el.textContent;
+        if (!availableLetters.has(letter)) {
+          el.classList.add('disabled');
+        } else {
+          // Ajouter le nombre de définitions en infobulle
+          const count = Object.values(data).filter(entry => 
+            entry.title.charAt(0).toUpperCase() === letter
+          ).length;
+          el.setAttribute('title', `${count} définition${count > 1 ? 's' : ''}`);
+        }
+      });
+    }
+
+    // Styles CSS additionnels pour l'alphabet
+    const alphabetStyles = `
+      .letter.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
+      .letter.active {
+        background: var(--primary-color);
+        color: white;
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+
+      @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(-10px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+
+      .alphabet-filter {
+        position: relative;
+        margin: 1rem 0;
+      }
+
+      .alphabet-filter::after {
+        content: "Cliquez sur une lettre pour filtrer, recliquez pour désactiver le filtre";
+        display: block;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.5rem;
+        text-align: center;
+        font-style: italic;
+      }
+    `;
+    styleSheet.textContent += alphabetStyles;
+
+    // Initialiser les lettres au chargement
+    window.addEventListener('load', function() {
+      initializeLetters();
+      // ... existing window.onload code ...
+    });
+
+    // Fonction pour afficher les détails personnalisés d'une définition
+    function showDetailedDefinition(key) {
+      const entry = data[key];
+      const resultBox = document.getElementById('results');
+      
+      // Sauvegarder l'état précédent pour pouvoir revenir en arrière
+      const previousContent = resultBox.innerHTML;
+      
+      let detailedContent = `
+        <div class="detailed-view fade-in">
+          <button class="back-button" onclick="restoreResults('${previousContent.replace(/'/g, "&#39;")}')">&larr; Retour</button>
+          
+          <div class="definition-header">
+            <h2>${entry.title}</h2>
+            <span class="category-badge">${entry.category}</span>
+          </div>
+          
+          <div class="definition-content">
+            <div class="definition-image">
+              <img src="${entry.image}" alt="Logo ${entry.title}">
+            </div>
+            
+            <div class="definition-details">
+              <div class="detail-section">
+                <h3>Description</h3>
+                <p>${entry.description}</p>
+              </div>
+              
+              <div class="detail-section">
+                <h3>Exemple d'utilisation</h3>
+                <pre><code>${entry.example}</code></pre>
+              </div>`;
+
+      // Ajouter des détails spécifiques selon la catégorie
+      if (entry.category === "Langage de programmation") {
+        detailedContent += `
+          <div class="detail-section">
+            <h3>Caractéristiques principales</h3>
+            <ul>
+              <li>Type : ${key === "python" ? "Interprété" : "Compilé"}</li>
+              <li>Paradigme : ${key === "python" ? "Multi-paradigme" : "Orienté objet"}</li>
+              <li>Année de création : ${key === "python" ? "1991" : "1995"}</li>
+            </ul>
+          </div>`;
+      } else if (entry.category === "Cybersécurité") {
+        detailedContent += `
+          <div class="detail-section">
+            <h3>Informations de sécurité</h3>
+            <div class="security-content">
+              ${getDetailedSecurityInfo(key)}
+            </div>
+          </div>`;
+      } else if (entry.category === "API Gratuite") {
+        detailedContent += `
+          <div class="detail-section">
+            <h3>Détails de l'API</h3>
+            <ul>
+              <li>Type d'authentification : Clé API</li>
+              <li>Format de réponse : JSON</li>
+              <li>Limites : Selon le plan</li>
+            </ul>
+          </div>`;
+      }
+
+      detailedContent += `
+            </div>
+          </div>
+        </div>
+      `;
+
+      resultBox.innerHTML = detailedContent;
+    }
+
+    // Fonction pour restaurer l'affichage précédent
+    function restoreResults(previousContent) {
+      const resultBox = document.getElementById('results');
+      if (resultBox && previousContent) {
+        const sanitizedContent = previousContent.replace(/[<>]/g, function(match) {
+          return match === '<' ? '&lt;' : '&gt;';
+        });
+        resultBox.innerHTML = sanitizedContent;
+      }
+    }
+
+    // Ajout des styles pour la vue détaillée
+    const detailedViewStyles = `
+      .detailed-view {
+        padding: 2rem;
+        background: var(--surface-color);
+        border-radius: var(--border-radius-lg);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .back-button {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius-md);
+        cursor: pointer;
+        margin-bottom: 1rem;
+        transition: background 0.3s ease;
+      }
+
+      .back-button:hover {
+        background: var(--primary-dark);
+      }
+
+      .definition-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .category-badge {
+        background: var(--primary-light);
+        color: var(--primary-dark);
+        padding: 0.3rem 0.8rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.9rem;
+      }
+
+      .definition-content {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+      }
+
+      .definition-image img {
+        width: 100%;
+        border-radius: var(--border-radius-md);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .definition-details {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .detail-section {
+        background: rgba(255,255,255,0.5);
+        padding: 1.5rem;
+        border-radius: var(--border-radius-md);
+        border: 1px solid var(--border-color);
+      }
+
+      .detail-section h3 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+      }
+
+      .detail-section pre {
+        background: rgba(0,0,0,0.05);
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        overflow-x: auto;
+      }
+
+      .dark-theme .detailed-view {
+        background: var(--dark-surface);
+      }
+
+      .dark-theme .detail-section {
+        background: rgba(0,0,0,0.2);
+        border-color: var(--dark-border);
+      }
+
+      .dark-theme .detail-section pre {
+        background: rgba(0,0,0,0.3);
+      }
+    `;
+    styleSheet.textContent += detailedViewStyles;
+
+    // Modifier la fonction updateResults pour ajouter le clic sur l'image
+    function updateResults(matches) {
+      const resultCount = document.getElementById('resultCount');
+      resultCount.textContent = `${matches.length} définition${matches.length > 1 ? 's' : ''} trouvée${matches.length > 1 ? 's' : ''}`;
+
+      if (matches.length > 0) {
+        const resultHTML = matches.map(([key, entry]) => {
+          const isSelected = isCompareMode && selectedForComparison.find(t => t.title === entry.title);
+          const onClickAttr = isCompareMode ? `onclick="selectForComparison('${key}')"` : '';
+          
+          return `
+            <div class="term-entry ${isSelected ? 'selected-for-comparison' : ''}" ${onClickAttr}>
+              <div class="term-header">
+                <h3>${entry.title} <span class="category">${entry.category}</span></h3>
+                <div class="term-actions">
+                  <button onclick="event.stopPropagation(); toggleFavorite('${key}')" class="action-btn ${favorites.has(key) ? 'favorite' : ''}">★</button>
+                  <button onclick="event.stopPropagation(); copyExample('${key}')" class="action-btn">📋</button>
+                  ${userNotes[key] ? '<span class="has-notes">📝</span>' : ''}
+                </div>
+              </div>
+              <img src="${entry.image}" alt="Logo ${entry.title}">
+              <p>${entry.description}</p>
+              <p class="example"><em>Exemple :</em> <code>${entry.example}</code></p>
+            </div>
+          `;
+        }).join('');
+
+        resultBox.innerHTML = `<div class="result-box fade-in">${resultHTML}</div>`;
+      } else {
+        resultBox.innerHTML = `
+          <div class="result-box fade-in">
+            <p>Aucune définition trouvée.</p>
+          </div>
+        `;
+      }
+
+      matches.forEach(([key]) => {
+        userProgress.viewedTerms.add(key);
+        userProgress.lastViewed[key] = new Date().toISOString();
+      });
+      saveProgress();
+    }
+
+    // Fonction pour afficher les informations détaillées de sécurité
+    function showDetailedInfo(key) {
+      const detailsDiv = document.getElementById(`details-${key}`);
+      if (detailsDiv) {
+        detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+
+    // Fonction pour obtenir les informations détaillées de sécurité
+    function getDetailedSecurityInfo(key) {
+      const securityInfo = {
+        "pentest": `
+          <h5>Méthodologie de test d'intrusion :</h5>
+          <ol>
+            <li>Reconnaissance : Collecte d'informations sur la cible</li>
+            <li>Scanning : Identification des ports et services ouverts</li>
+            <li>Exploitation : Test des vulnérabilités identifiées</li>
+            <li>Rapport : Documentation des résultats et recommandations</li>
+          </ol>
+          <h5>Outils recommandés :</h5>
+          <ul>
+            <li>Nmap pour le scanning</li>
+            <li>Metasploit pour l'exploitation</li>
+            <li>Wireshark pour l'analyse réseau</li>
+          </ul>
+        `,
+        "vulnerabilite": `
+          <h5>Types courants de vulnérabilités :</h5>
+          <ul>
+            <li>Injection SQL</li>
+            <li>Cross-Site Scripting (XSS)</li>
+            <li>Cross-Site Request Forgery (CSRF)</li>
+            <li>Buffer Overflow</li>
+          </ul>
+          <h5>Bonnes pratiques :</h5>
+          <ul>
+            <li>Mise à jour régulière des systèmes</li>
+            <li>Validation des entrées utilisateur</li>
+            <li>Utilisation de paramètres préparés</li>
+          </ul>
+        `,
+        "firewall": `
+          <h5>Types de firewalls :</h5>
+          <ul>
+            <li>Firewall par paquets</li>
+            <li>Firewall applicatif</li>
+            <li>Firewall d'état</li>
+            <li>Firewall nouvelle génération (NGFW)</li>
+          </ul>
+          <h5>Fonctionnalités principales :</h5>
+          <ul>
+            <li>Filtrage des paquets</li>
+            <li>Inspection d'état</li>
+            <li>Protection contre les attaques</li>
+            <li>Journalisation des événements</li>
+          </ul>
+        `,
+        "chiffrement": `
+          <h5>Types de chiffrement :</h5>
+          <ul>
+            <li>Chiffrement symétrique (AES, DES)</li>
+            <li>Chiffrement asymétrique (RSA, ECC)</li>
+            <li>Chiffrement hybride</li>
+          </ul>
+          <h5>Applications :</h5>
+          <ul>
+            <li>Protection des données sensibles</li>
+            <li>Communication sécurisée</li>
+            <li>Authentification</li>
+            <li>Signature numérique</li>
+          </ul>
+        `,
+        "authentification": `
+          <h5>Méthodes d'authentification :</h5>
+          <ul>
+            <li>Authentification par mot de passe</li>
+            <li>Authentification à deux facteurs (2FA)</li>
+            <li>Biométrie</li>
+            <li>Jetons d'authentification</li>
+          </ul>
+          <h5>Bonnes pratiques :</h5>
+          <ul>
+            <li>Mots de passe forts</li>
+            <li>Rotation régulière des mots de passe</li>
+            <li>Gestion sécurisée des sessions</li>
+            <li>Protection contre les attaques par force brute</li>
+          </ul>
+        `,
+        "audit": `
+          <h5>Étapes d'un audit de sécurité :</h5>
+          <ol>
+            <li>Planification et préparation</li>
+            <li>Collecte d'informations</li>
+            <li>Analyse des vulnérabilités</li>
+            <li>Tests d'intrusion</li>
+            <li>Rapport et recommandations</li>
+          </ol>
+          <h5>Outils d'audit :</h5>
+          <ul>
+            <li>Scanners de vulnérabilités</li>
+            <li>Outils d'analyse de configuration</li>
+            <li>Outils de test d'intrusion</li>
+            <li>Outils de journalisation</li>
+          </ul>
+        `,
+        "malware": `
+          <h5>Types de malware :</h5>
+          <ul>
+            <li>Virus</li>
+            <li>Vers</li>
+            <li>Chevaux de Troie</li>
+            <li>Ransomware</li>
+            <li>Spyware</li>
+          </ul>
+          <h5>Protection :</h5>
+          <ul>
+            <li>Antivirus à jour</li>
+            <li>Pare-feu</li>
+            <li>Mises à jour système</li>
+            <li>Vigilance lors du téléchargement</li>
+          </ul>
+        `,
+        "social": `
+          <h5>Techniques d'ingénierie sociale :</h5>
+          <ul>
+            <li>Phishing</li>
+            <li>Vishing (appels téléphoniques)</li>
+            <li>Baiting (appâts)</li>
+            <li>Pretexting</li>
+          </ul>
+          <h5>Prévention :</h5>
+          <ul>
+            <li>Formation des utilisateurs</li>
+            <li>Politiques de sécurité claires</li>
+            <li>Vérification des identités</li>
+            <li>Signalement des incidents</li>
+          </ul>
+        `,
+        "backup": `
+          <h5>Types de sauvegardes :</h5>
+          <ul>
+            <li>Sauvegarde complète</li>
+            <li>Sauvegarde incrémentale</li>
+            <li>Sauvegarde différentielle</li>
+            <li>Sauvegarde miroir</li>
+          </ul>
+          <h5>Bonnes pratiques :</h5>
+          <ul>
+            <li>Règle 3-2-1 (3 copies, 2 types de stockage, 1 hors site)</li>
+            <li>Tests réguliers de restauration</li>
+            <li>Chiffrement des sauvegardes</li>
+            <li>Plan de reprise d'activité</li>
+          </ul>
+        `
+      };
+      return securityInfo[key] || '';
+    }
+
+    // Fonction pour réinitialiser l'exercice
+    function resetExercise(category, index) {
+      const exercise = exercisesData[category].exercises[index];
+      document.getElementById('codeEditor').value = exercise.template;
+      document.getElementById('testResults').innerHTML = '';
+    }
+
+    // Fonction pour afficher la solution
+    function showSolution(category, index) {
+      const exercise = exercisesData[category].exercises[index];
+      const editor = document.getElementById('codeEditor');
+      editor.value = exercise.solution;
+    }
+
+    // Ajout de la variable pour suivre les tests débloqués
+    let unlockedTests = JSON.parse(localStorage.getItem('unlockedTests')) || {};
+
+    // Fonction pour initialiser les tests débloqués pour un exercice
+    function initializeUnlockedTests(category, index) {
+      const exerciseId = `${category}-${index}`;
+      if (!unlockedTests[exerciseId]) {
+        unlockedTests[exerciseId] = [0]; // Débloquer uniquement le premier test
+        saveUnlockedTests();
+      }
+      return unlockedTests[exerciseId];
+    }
+
+    // Fonction pour sauvegarder l'état des tests débloqués
+    function saveUnlockedTests() {
+      localStorage.setItem('unlockedTests', JSON.stringify(unlockedTests));
+    }
+
+    // Modification de la fonction unlockNextTest pour ne débloquer qu'un seul test à la fois
+    function unlockNextTest(category, index) {
+      const exerciseId = `${category}-${index}`;
+      const exercise = exercisesData[category].exercises[index];
+      const currentUnlocked = unlockedTests[exerciseId];
+      
+      // Ne débloquer que le prochain test dans la séquence
+      const nextTestIndex = Math.max(...currentUnlocked) + 1;
+      
+      if (nextTestIndex < exercise.testCases.length) {
+        // Vérifier si le test précédent est réussi avant de débloquer le suivant
+        const code = document.getElementById('codeEditor').value;
+        const previousTestResult = executeCode(code, [exercise.testCases[nextTestIndex - 1]], exercise.language, category, index)[0];
+        
+        if (previousTestResult.passed) {
+          currentUnlocked.push(nextTestIndex);
+          saveUnlockedTests();
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // Modification de la fonction runTests pour gérer correctement le déblocage
+    function runTests(category, index) {
+      const exercise = exercisesData[category].exercises[index];
+      const code = document.getElementById('codeEditor').value;
+      const resultsDiv = document.getElementById('testResults');
+      
+      // Initialiser les tests débloqués si nécessaire
+      initializeUnlockedTests(category, index);
+      
+      const testResults = executeCode(code, exercise.testCases, exercise.language, category, index);
+      const unlockedResults = testResults.filter(result => !result.locked);
+      const lastUnlockedResult = unlockedResults[unlockedResults.length - 1];
+      const allUnlockedPassed = unlockedResults.every(result => result.passed);
+      
+      resultsDiv.innerHTML = `
+        <div class="test-execution">
+          <div class="test-summary ${allUnlockedPassed ? 'all-passed' : 'has-failures'}">
+            <h3>${allUnlockedPassed ? '🎉 Super ! Continue avec le prochain test !' : '💪 Continue, tu y es presque !'}</h3>
+          </div>
+          <div class="test-list">
+            ${testResults.map((result, i) => `
+              <div class="test-case ${result.locked ? 'locked' : result.passed ? 'success' : 'failure'}">
+                <div class="test-content">
+                  <div class="test-header">
+                    <span>Test ${result.testNumber}</span>
+                    ${result.locked ? 
+                      '<span class="test-badge locked">🔒</span>' :
+                      `<span class="test-badge ${result.passed ? 'success' : 'failure'}">${result.passed ? '✅' : '❌'}</span>`
+                    }
+                  </div>
+                  ${result.locked ? `
+                    <div class="locked-message">
+                      <p>Réussis le test précédent pour débloquer celui-ci !</p>
+                    </div>
+                  ` : `
+                    <div class="test-details">
+                      <div class="test-info">Entrée : ${result.input}</div>
+                      ${!result.passed ? `
+                        <div class="test-info">Attendu : ${result.expected}</div>
+                        ${result.actual !== undefined ? `
+                          <div class="test-info">Obtenu : ${result.actual}</div>
+                        ` : ''}
+                      ` : ''}
+                    </div>
+                    ${result.error || result.explanation ? `
+                      <div class="${result.error ? 'error-hint' : 'test-hint'}">
+                        ${result.error || result.explanation}
+                      </div>
+                    ` : ''}
+                  `}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      // Si le dernier test débloqué est réussi, tenter de débloquer le suivant
+      if (lastUnlockedResult && lastUnlockedResult.passed) {
+        const newTestUnlocked = unlockNextTest(category, index);
+        if (newTestUnlocked) {
+          // Afficher un message pour le nouveau test débloqué
+          const successMessage = document.createElement('div');
+          successMessage.className = 'success-notification';
+          successMessage.innerHTML = `
+            <div class="success-message">
+              <h3>🎉 Nouveau test débloqué !</h3>
+              <p>Continue sur ta lancée !</p>
+            </div>
+          `;
+          document.body.appendChild(successMessage);
+          setTimeout(() => {
+            successMessage.remove();
+            runTests(category, index); // Rafraîchir l'affichage
+          }, 1500);
+        } else if (allUnlockedPassed && unlockedResults.length === exercise.testCases.length) {
+          // Tous les tests sont réussis
+          markExerciseAsCompleted(category, index);
+          showSuccessMessage(category, index);
+        }
+      }
+    }
+
+    // Ajout des styles pour les tests verrouillés
+    const additionalStyles = `
+      .test-case.locked {
+        background-color: rgba(0, 0, 0, 0.05);
+        border: 2px dashed #ccc;
+      }
+
+      .test-badge.locked {
+        background-color: #888;
+        color: white;
+      }
+
+      .locked-message {
+        text-align: center;
+        padding: 10px;
+        color: #666;
+        font-style: italic;
+      }
+
+      .success-notification {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #4CAF50;
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -60%); }
+        to { opacity: 1; transform: translate(-50%, -50%); }
+      }
+    `;
+    styleSheet.textContent += additionalStyles;
+
+    // Fonction pour vérifier si un exercice est débloqué
+    function isExerciseUnlocked(category, index) {
+      return exerciseProgress.unlockedExercises[category]?.includes(index);
+    }
+
+    // Fonction pour débloquer le prochain exercice
+    function unlockNextExercise(category, currentIndex) {
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < exercisesData[category].exercises.length && 
+          !exerciseProgress.unlockedExercises[category].includes(nextIndex)) {
+        exerciseProgress.unlockedExercises[category].push(nextIndex);
+        saveExerciseProgress();
+      }
+    }
+
+    // Fonction pour marquer un exercice comme complété
+    function markExerciseAsCompleted(category, index) {
+      if (!exerciseProgress.completedExercises[category].includes(index)) {
+        exerciseProgress.completedExercises[category].push(index);
+        unlockNextExercise(category, index);
+        saveExerciseProgress();
+      }
+    }
+
+    // Fonction pour sauvegarder la progression
+    function saveExerciseProgress() {
+      localStorage.setItem('exerciseProgress', JSON.stringify(exerciseProgress));
+    }
+
+    // Fonction pour afficher un message quand un exercice est verrouillé
+    function showLockedMessage() {
+      const notification = document.createElement('div');
+      notification.className = 'locked-notification';
+      notification.innerHTML = `
+        <div class="locked-message">
+          <p>🔒 Cet exercice est verrouillé</p>
+          <p>Complétez l'exercice précédent pour le débloquer</p>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
+    }
+
+    // Ajout des styles CSS pour les nouveaux éléments
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = `
+      .exercise-card {
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .exercise-card.locked {
+        opacity: 0.7;
+        filter: grayscale(0.5);
+        cursor: not-allowed;
+      }
+
+      .exercise-card.unlocked {
+        cursor: pointer;
+      }
+
+      .exercise-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 1.2em;
+      }
+
+      .completed-badge, .unlocked-badge, .locked-badge {
+        padding: 4px;
+        border-radius: 50%;
+      }
+
+      .locked-notification, .success-notification {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .locked-message, .success-message {
+        text-align: center;
+      }
+
+      .difficulty-indicator {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+      }
+
+      .difficulty-indicator.débutant {
+        background-color: #4CAF50;
+        color: white;
+      }
+
+      .difficulty-indicator.intermédiaire {
+        background-color: #FFC107;
+        color: black;
+      }
+
+      .difficulty-indicator.avancé {
+        background-color: #F44336;
+        color: white;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      .security-details {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+      }
+
+      .security-content {
+        margin-top: 10px;
+      }
+
+      .security-content h5 {
+        color: #2c3e50;
+        margin: 15px 0 10px 0;
+        font-size: 1.1em;
+      }
+
+      .security-content ul, .security-content ol {
+        margin-left: 20px;
+        margin-bottom: 15px;
+      }
+
+      .security-content li {
+        margin: 5px 0;
+        color: #444;
+      }
+
+      .term-entry {
+        transition: all 0.3s ease;
+      }
+
+      .term-entry:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+
+      .term-entry img {
+        transition: transform 0.3s ease;
+      }
+
+      .term-entry img:hover {
+        transform: scale(1.05);
+      }
+    `;
+    document.head.appendChild(styleSheet);
+
+    // Styles CSS améliorés
+    const enhancedStyles = `
+      :root {
+        --primary-gradient: linear-gradient(135deg, #2196F3, #1976D2);
+        --card-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        --hover-transform: translateY(-5px);
+        --transition-speed: 0.3s;
+      }
+
+      .term-entry {
+        position: relative;
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+        border: none;
+        transition: all var(--transition-speed) ease;
+        overflow: hidden;
+      }
+
+      .term-entry::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: var(--primary-gradient);
+      }
+
+      .term-entry:hover {
+        transform: var(--hover-transform);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+      }
+
+      .term-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .term-header h3 {
+        font-size: 1.8rem;
+        color: #1a237e;
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .category {
+        background: #E3F2FD;
+        color: #1976D2;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-left: 1rem;
+      }
+
+      .term-entry img {
+        max-width: 200px;
+        height: auto;
+        border-radius: 12px;
+        margin: 1rem 0;
+        transition: transform var(--transition-speed) ease;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+      }
+
+      .term-entry img:hover {
+        transform: scale(1.05);
+      }
+
+      .term-entry p {
+        color: #37474F;
+        line-height: 1.6;
+        margin: 1rem 0;
+      }
+
+      .example {
+        background: #F5F7FA;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid #2196F3;
+      }
+
+      .example code {
+        font-family: 'Fira Code', monospace;
+        color: #263238;
+      }
+
+      .term-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .action-btn {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all var(--transition-speed) ease;
+        color: #757575;
+      }
+
+      .action-btn:hover {
+        background: #E3F2FD;
+        color: #2196F3;
+        transform: scale(1.1);
+      }
+
+      .action-btn.favorite {
+        color: #FFC107;
+      }
+
+      .has-notes {
+        background: #E8F5E9;
+        color: #4CAF50;
+        padding: 0.3rem;
+        border-radius: 4px;
+      }
+
+      /* Mode sombre */
+      .dark-theme .term-entry {
+        background: #1a1a2e;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      }
+
+      .dark-theme .term-header h3 {
+        color: #E3F2FD;
+      }
+
+      .dark-theme .category {
+        background: rgba(33, 150, 243, 0.1);
+        color: #90CAF9;
+      }
+
+      .dark-theme .term-entry p {
+        color: #B0BEC5;
+      }
+
+      .dark-theme .example {
+        background: rgba(0,0,0,0.2);
+        border-left-color: #1976D2;
+      }
+
+      .dark-theme .example code {
+        color: #90CAF9;
+      }
+
+      .dark-theme .action-btn {
+        color: #B0BEC5;
+      }
+
+      .dark-theme .action-btn:hover {
+        background: rgba(33, 150, 243, 0.1);
+        color: #90CAF9;
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in {
+        animation: fadeInUp 0.5s ease forwards;
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .term-entry {
+          padding: 1.5rem;
+        }
+
+        .term-header h3 {
+          font-size: 1.4rem;
+        }
+
+        .term-entry img {
+          max-width: 150px;
+        }
+
+        .category {
+          font-size: 0.8rem;
+          padding: 0.3rem 0.8rem;
+        }
+      }
+
+      /* Améliorations pour la barre de recherche */
+      .search-bar {
+        position: relative;
+        margin-bottom: 2rem;
+      }
+
+      .search-bar input {
+        width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1.1rem;
+        border: 2px solid #E3F2FD;
+        border-radius: 30px;
+        background: white;
+        transition: all var(--transition-speed) ease;
+      }
+
+      .search-bar input:focus {
+        outline: none;
+        border-color: #2196F3;
+        box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.1);
+      }
+
+      .search-bar button {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all var(--transition-speed) ease;
+      }
+
+      .search-bar button:hover {
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+      }
+
+      /* Style pour les boutons de contrôle */
+      .controls-group button {
+        background: white;
+        border: none;
+        padding: 0.8rem 1.2rem;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all var(--transition-speed) ease;
+        color: #37474F;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+
+      .controls-group button:hover {
+        background: #E3F2FD;
+        color: #2196F3;
+        transform: translateY(-2px);
+      }
+
+      .dark-theme .controls-group button {
+        background: #1a1a2e;
+        color: #B0BEC5;
+      }
+
+      .dark-theme .controls-group button:hover {
+        background: #2196F3;
+        color: white;
+      }
+    `;
+    styleSheet.textContent += enhancedStyles;
+  </script>
+</body>
+</html>
